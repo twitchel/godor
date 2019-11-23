@@ -6,9 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/stianeikeland/go-rpio"
 )
 
 type configMqtt struct {
@@ -52,12 +54,19 @@ func main() {
 		// every 100 ms check if the pin is high or low and report this to then pings channel
 		ticker := time.NewTicker(c.sensor.checkRate)
 
+		var pin rpio.Pin
+		if !c.emulate {
+			pin = getPin(c.sensor.pin)
+			pin.Input()
+		}
+
 		for _ = range ticker.C {
+			var isOpen bool
+
 			if c.emulate {
 
 				_, err := ioutil.ReadFile("./open")
 
-				var isOpen bool
 				if err != nil {
 					isOpen = false
 				} else {
@@ -69,9 +78,16 @@ func main() {
 					time:   time.Now(),
 				}
 			} else {
-				// REAL PIN!!!!!
+				pinState := pin.Read()
+
+				if pinState == rpio.Low {
+					isOpen = false
+				} else {
+					isOpen = true
+				}
+
 				pings <- ping{
-					isOpen: true,
+					isOpen: isOpen,
 					time:   time.Now(),
 				}
 			}
@@ -92,7 +108,7 @@ func main() {
 				payload := fmt.Sprintf("{\"isOpen\":%v}", p.isOpen)
 				go client.Publish(c.mqtt.topic, byte(0), false, payload)
 
-				log.Printf("Fire: %v", p.isOpen)
+				log.Printf(payload)
 			}
 
 			recheck = false
@@ -117,7 +133,18 @@ func prepareConfig() *config {
 		mqttTopic = "godor/door1"
 	}
 
+	lePin, ok := os.LookupEnv("GODOR_PIN")
+	if !ok {
+		lePin = "1"
+	}
+
+	leIntPin, err := strconv.Atoi(lePin)
+	if err != nil {
+		panic("Wrong pin")
+	}
+
 	log.Println(mqttTopic)
+	log.Println(lePin)
 
 	return &config{
 		emulate: true,
@@ -127,7 +154,7 @@ func prepareConfig() *config {
 		},
 
 		sensor: &configSensor{
-			pin:       1,
+			pin:       leIntPin,
 			checkRate: time.Second,
 		},
 
@@ -135,6 +162,17 @@ func prepareConfig() *config {
 			pin: 1,
 		},
 	}
+}
+
+func getPin(pin int) rpio.Pin {
+	thePin := rpio.Pin(pin)
+
+	if err := rpio.Open(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	return thePin
 }
 
 func connectMqtt(server string) (MQTT.Client, error) {
