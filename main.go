@@ -101,7 +101,7 @@ func getPin(pin int) rpio.Pin {
 	thePin := rpio.Pin(pin)
 
 	if err := rpio.Open(); err != nil {
-		log.Printf("unable to open pin %i: %v", pin, err)
+		log.Printf("unable to open pin %d: %v", pin, err)
 		os.Exit(1)
 	}
 
