@@ -168,7 +168,7 @@ func getPin(pin int) rpio.Pin {
 	thePin := rpio.Pin(pin)
 
 	if err := rpio.Open(); err != nil {
-		fmt.Println(err)
+		log.Printf("unable to open pin %i: %v", pin, err)
 		os.Exit(1)
 	}
 
@@ -176,7 +176,7 @@ func getPin(pin int) rpio.Pin {
 }
 
 func connectMqtt(server string) (MQTT.Client, error) {
-	log.Println("MQTT: preparing connection")
+	log.Println("mqtt: preparing connection")
 	connOpts := MQTT.NewClientOptions().AddBroker(server).SetCleanSession(true)
 	tlsConfig := &tls.Config{InsecureSkipVerify: true, ClientAuth: tls.NoClientCert}
 	connOpts.SetTLSConfig(tlsConfig)
@@ -185,6 +185,6 @@ func connectMqtt(server string) (MQTT.Client, error) {
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		return client, token.Error()
 	}
-	log.Printf("MQTT: connected to %s\n", server)
+	log.Printf("mqtt: connected to %s\n", server)
 	return client, nil
 }
