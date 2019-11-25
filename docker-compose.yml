@@ -20,6 +20,14 @@ services:
       - ./:/go/src/twitchel/godor/
     depends_on:
       - mqtt
-volumes: 
+    environment:
+      - MQTT_SERVER=tcp://mqtt:1883
+      - MQTT_TOPIC=godor/door1
+    stdin_open: true
+  mqtt-client:
+    image: efrecon/mqtt-client
+    restart: always
+    command: sub -h mqtt -t "godor/door1" -v
+volumes:
   go_src:
   go_pkg:
