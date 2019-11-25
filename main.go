@@ -40,37 +40,12 @@ func main() {
 		}
 
 		for _ = range ticker.C {
-			var isOpen bool
-
 			if c.emulate {
-
-				_, err := ioutil.ReadFile("./open")
-
-				if err != nil {
-					isOpen = false
-				} else {
-					isOpen = true
-				}
-
-				pings <- ping{
-					isOpen: isOpen,
-					time:   time.Now(),
-				}
+				p <- emulatePing()
 			} else {
-				pinState := pin.Read()
+				p <- gpioPing(pin)
 
-				if pinState == rpio.Low {
-					isOpen = false
-				} else {
-					isOpen = true
-				}
-
-				pings <- ping{
-					isOpen: isOpen,
-					time:   time.Now(),
-				}
 			}
-
 		}
 	}(c, pings)
 
@@ -96,6 +71,38 @@ func main() {
 		previousPing = p
 	}
 
+}
+
+func gpioPing(pin rpio.Pin) ping {
+	pinState := pin.Read()
+
+	var isOpen bool
+	if pinState == rpio.Low {
+		isOpen = false
+	} else {
+		isOpen = true
+	}
+
+	return ping{
+		isOpen: isOpen,
+		time:   time.Now(),
+	}
+}
+
+func emulatePing() ping {
+	_, err := ioutil.ReadFile("./open")
+
+	var isOpen bool
+	if err != nil {
+		isOpen = false
+	} else {
+		isOpen = true
+	}
+
+	return ping{
+		isOpen: isOpen,
+		time:   time.Now(),
+	}
 }
 
 func getPin(pin int) rpio.Pin {
