@@ -19,11 +19,12 @@ type ping struct {
 
 func main() {
 	c := prepareConfig()
-	log.Println(c.mqtt.topic)
-	client, error := connectMqtt(c.mqtt.server)
+	log.Printf("configuration: %+v", c)
 
-	if error != nil {
-		panic(error)
+	client, err := connectMqtt(c.mqtt.server)
+
+	if err != nil {
+		panic(err)
 	}
 
 	pings := make(chan ping)
