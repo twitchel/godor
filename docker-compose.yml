@@ -24,6 +24,7 @@ services:
       - MQTT_SERVER=tcp://mqtt:1883
       - MQTT_TOPIC=godor/door1
     stdin_open: true
+    tty: true
   mqtt-client:
     image: efrecon/mqtt-client
     restart: always
