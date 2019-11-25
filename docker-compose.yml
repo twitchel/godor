@@ -1,0 +1,25 @@
+version: "3"
+services:
+  mqtt:
+    image: eclipse-mosquitto:1.6.7
+    restart: always
+    ports:
+      - 1883:1883
+      # - 9001:9001
+    volumes:
+      # - ./cfg:/mosquitto/config/
+      - /mosquitto/data
+      - /mosquitto/log
+  godor:
+    image: cosmtrek/air
+    restart: always
+    working_dir: /go/src/twitchel/godor/
+    volumes:
+      - go_src:/go/src:cached
+      - go_pkg:/go/pkg:cached
+      - ./:/go/src/twitchel/godor/
+    depends_on:
+      - mqtt
+volumes: 
+  go_src:
+  go_pkg:
