@@ -27,12 +27,6 @@ type config struct {
 	button  *configButton
 }
 
-// Environment interface mimics the existing os package and the dependencies
-// we need for loading the config
-type Environment interface {
-	LookupEnv(key string) (string, bool)
-}
-
 func prepareConfig() *config {
 
 	gpioPin := env("GODOR_PIN", "1")
