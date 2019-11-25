@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -28,38 +27,26 @@ type config struct {
 	button  *configButton
 }
 
+// Environment interface mimics the existing os package and the dependencies
+// we need for loading the config
+type Environment interface {
+	LookupEnv(key string) (string, bool)
+}
+
 func prepareConfig() *config {
 
-	mqttServer, ok := os.LookupEnv("MQTT_SERVER")
+	gpioPin := env("GODOR_PIN", "1")
 
-	if !ok {
-		mqttServer = "tcp://192.168.1.194:1883"
-	}
-
-	mqttTopic, ok := os.LookupEnv("MQTT_TOPIC")
-
-	if !ok {
-		mqttTopic = "godor/door1"
-	}
-
-	lePin, ok := os.LookupEnv("GODOR_PIN")
-	if !ok {
-		lePin = "1"
-	}
-
-	leIntPin, err := strconv.Atoi(lePin)
+	leIntPin, err := strconv.Atoi(gpioPin)
 	if err != nil {
-		panic("Wrong pin")
+		panic("unable to convert pin number")
 	}
-
-	log.Println(mqttTopic)
-	log.Println(lePin)
 
 	return &config{
 		emulate: true,
 		mqtt: &configMqtt{
-			server: mqttServer,
-			topic:  mqttTopic,
+			server: env("MQTT_SERVER", "tcp://192.168.1.194:1883"),
+			topic:  env("MQTT_TOPIC", "godor/door1"),
 		},
 
 		sensor: &configSensor{
@@ -67,8 +54,16 @@ func prepareConfig() *config {
 			checkRate: time.Second,
 		},
 
+		// not used yet
 		button: &configButton{
 			pin: 1,
 		},
 	}
+}
+
+func env(key, defaultValue string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return val
+	}
+	return defaultValue
 }
