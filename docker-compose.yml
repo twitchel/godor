@@ -28,6 +28,8 @@ services:
     image: efrecon/mqtt-client
     restart: always
     command: sub -h mqtt -t "godor/door1" -v
+    depends_on:
+      - mqtt
 volumes:
   go_src:
   go_pkg:
