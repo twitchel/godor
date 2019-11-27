@@ -29,28 +29,34 @@ type config struct {
 
 func prepareConfig() *config {
 
-	gpioPin := env("GODOR_PIN", "1")
+	sensorPin := env("GODOR_SENSOR_PIN", "1")
 
-	leIntPin, err := strconv.Atoi(gpioPin)
+	sensorPinInt, err := strconv.Atoi(sensorPin)
 	if err != nil {
-		panic("unable to convert pin number")
+		panic("sensor: unable to convert pin number")
+	}
+
+	buttonPin := env("GODOR_BUTTON_PIN", "2")
+	buttonPinInt, err := strconv.Atoi(buttonPin)
+	if err != nil {
+		panic("button: unable to convert pin number")
 	}
 
 	return &config{
 		emulate: true,
 		mqtt: &configMqtt{
-			server: env("MQTT_SERVER", "tcp://192.168.1.194:1883"),
-			topic:  env("MQTT_TOPIC", "godor/door1"),
+			server: env("GODOR_MQTT_SERVER", "tcp://192.168.1.194:1883"),
+			topic:  env("GODOR_SENSOR_MQTT_TOPIC", "godor/door1/state"),
 		},
 
 		sensor: &configSensor{
-			pin:       leIntPin,
+			pin:       sensorPinInt,
 			checkRate: time.Second,
 		},
 
 		// not used yet
 		button: &configButton{
-			pin: 1,
+			pin: buttonPinInt,
 		},
 	}
 }
@@ -59,5 +65,8 @@ func env(key, defaultValue string) string {
 	if val, ok := os.LookupEnv(key); ok {
 		return val
 	}
+
+	// read from .env file here as second option
+
 	return defaultValue
 }
