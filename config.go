@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -30,8 +31,11 @@ func prepareConfig() *config {
 
 	gpioPin := env("GODOR_PIN", "1")
 
+	emulateString := env("EMULATE", "false")
+	emulate, _ := strconv.ParseBool(emulateString)
+
 	return &config{
-		emulate: false,
+		emulate: emulate,
 		mqtt: &configMqtt{
 			server: env("MQTT_SERVER", "tcp://192.168.1.194:1883"),
 			topic:  env("MQTT_TOPIC", "godor/door1"),
