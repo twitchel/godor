@@ -9,7 +9,9 @@ import (
 	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"github.com/stianeikeland/go-rpio"
+	"periph.io/x/periph/conn/gpio"
+	"periph.io/x/periph/conn/gpio/gpioreg"
+	"periph.io/x/periph/host"
 )
 
 type ping struct {
@@ -33,10 +35,11 @@ func main() {
 		// every 100 ms check if the pin is high or low and report this to then pings channel
 		ticker := time.NewTicker(c.sensor.checkRate)
 
-		var pin rpio.Pin
+		var pin gpio.PinIO
 		if !c.emulate {
+			host.Init()
 			pin = getPin(c.sensor.pin)
-			pin.Input()
+			//pin.WaitForEdge(-1)
 		}
 
 		for _ = range ticker.C {
@@ -73,11 +76,11 @@ func main() {
 
 }
 
-func gpioPing(pin rpio.Pin) ping {
+func gpioPing(pin gpio.PinIO) ping {
 	pinState := pin.Read()
 
 	var isOpen bool
-	if pinState == rpio.Low {
+	if pinState == gpio.Low {
 		isOpen = false
 	} else {
 		isOpen = true
@@ -105,10 +108,10 @@ func emulatePing() ping {
 	}
 }
 
-func getPin(pin int) rpio.Pin {
-	thePin := rpio.Pin(pin)
+func getPin(pin string) gpio.PinIO {
+	thePin := gpioreg.ByName(pin)
 
-	if err := rpio.Open(); err != nil {
+	if err := thePin.In(gpio.PullUp, gpio.FallingEdge); err != nil {
 		log.Printf("unable to open pin %d: %v", pin, err)
 		os.Exit(1)
 	}
