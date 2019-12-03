@@ -31,8 +31,8 @@ type config struct {
 
 func prepareConfig() *config {
 
-	sensorPin := env("GODOR_SENSOR_PIN", "1")
-	buttonPin := env("GODOR_BUTTON_PIN", "2")
+	sensorPin := env("GODOR_SENSOR_PIN", "GPIO22")
+	buttonPin := env("GODOR_BUTTON_PIN", "GPIO16")
 
 	emulateString := env("EMULATE", "false")
 	emulate, _ := strconv.ParseBool(emulateString)
@@ -45,7 +45,7 @@ func prepareConfig() *config {
 
 		sensor: &configSensor{
 			pin:       sensorPin,
-			checkRate: time.Second,
+			checkRate: time.Millisecond * 100,
 			topic:     env("SENSOR_MQTT_TOPIC", "godor/door1/state"),
 		},
 
