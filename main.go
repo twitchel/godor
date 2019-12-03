@@ -63,7 +63,7 @@ func main() {
 			if p.isOpen == recheckValue {
 
 				payload := fmt.Sprintf("{\"isOpen\":%v}", p.isOpen)
-				go client.Publish(c.mqtt.topic, byte(0), false, payload)
+				go client.Publish(c.sensor.topic, byte(0), false, payload)
 
 				log.Printf(payload)
 			}
