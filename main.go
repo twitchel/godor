@@ -23,7 +23,7 @@ func main() {
 	c := prepareConfig()
 	log.Printf("configuration: %+v", c)
 
-	client, err := connectMqtt(c.mqtt.server)
+	client, err := connectMqtt(c)
 
 	if err != nil {
 		panic(err)
@@ -76,7 +76,18 @@ func monitorSensor(c *config, client MQTT.Client) {
 
 		previousPing = p
 	}
+}
 
+func buttonHandler(buttonPin string) {
+	log.Printf("activating garage door")
+	pin := getButtonPin(buttonPin)
+	err := pin.Out(gpio.High)
+	if err != nil {
+		log.Printf("unable to push to pin %s: %v", buttonPin, err)
+		os.Exit(1)
+	}
+	time.Sleep(1000 * time.Millisecond)
+	pin.Out(gpio.Low)
 }
 
 func gpioPing(pin gpio.PinIO) ping {
@@ -122,11 +133,25 @@ func getSensorPin(pin string) gpio.PinIO {
 	return thePin
 }
 
-func connectMqtt(server string) (MQTT.Client, error) {
+func getButtonPin(pin string) gpio.PinIO {
+	return gpioreg.ByName(pin)
+}
+
+func connectMqtt(config *config) (MQTT.Client, error) {
 	log.Println("mqtt: preparing connection")
+	server := config.mqtt.server
 	connOpts := MQTT.NewClientOptions().AddBroker(server).SetCleanSession(true)
 	tlsConfig := &tls.Config{InsecureSkipVerify: true, ClientAuth: tls.NoClientCert}
 	connOpts.SetTLSConfig(tlsConfig)
+	connOpts.OnConnect = func(client MQTT.Client) {
+		if token := client.Subscribe(config.button.topic, byte(0), func (client MQTT.Client, message MQTT.Message) {
+			go func () {
+				buttonHandler(config.button.pin)
+			}()
+		}); token.Wait() && token.Error() != nil {
+			panic(token.Error())
+		}
+	}
 
 	client := MQTT.NewClient(connOpts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
