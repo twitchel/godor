@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -12,7 +11,7 @@ type configMqtt struct {
 }
 
 type configSensor struct {
-	pin       int
+	pin       string
 	checkRate time.Duration
 }
 
@@ -31,20 +30,15 @@ func prepareConfig() *config {
 
 	gpioPin := env("GODOR_PIN", "1")
 
-	leIntPin, err := strconv.Atoi(gpioPin)
-	if err != nil {
-		panic("unable to convert pin number")
-	}
-
 	return &config{
-		emulate: true,
+		emulate: false,
 		mqtt: &configMqtt{
 			server: env("MQTT_SERVER", "tcp://192.168.1.194:1883"),
 			topic:  env("MQTT_TOPIC", "godor/door1"),
 		},
 
 		sensor: &configSensor{
-			pin:       leIntPin,
+			pin:       gpioPin,
 			checkRate: time.Second,
 		},
 
