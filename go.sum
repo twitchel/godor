@@ -4,6 +4,8 @@ github.com/eclipse/paho.mqtt.golang v1.2.0 h1:1F8mhG9+aO5/xpdtFkW4SxOJB67ukuDC3t
 github.com/eclipse/paho.mqtt.golang v1.2.0/go.mod h1:H9keYFcgq3Qr5OUJm/JZI/i6U7joQ8SYLhZwfeOo6Ts=
 github.com/eiannone/keyboard v0.0.0-20190314115158-7169d0afeb4f h1:UnS2RJ1y4KXbupaWRmMIkfFE9IBW//FiSCfTnHTsErI=
 github.com/eiannone/keyboard v0.0.0-20190314115158-7169d0afeb4f/go.mod h1:Xoiu5VdKMvbRgHuY7+z64lhu/7lvax/22nzASF6GrO8=
+github.com/google/periph v3.6.2+incompatible h1:I3vZymr4OQFxVtydnkTCBK6OyDrJYPoS+q9j+HwE5qA=
+github.com/google/periph v3.6.2+incompatible/go.mod h1:ymRi4Ht9h/i3hUGeUesM5N4RrWNMRfPaQKArxsJSt9E=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stianeikeland/go-rpio v4.2.0+incompatible h1:CUOlIxdJdT+H1obJPsmg8byu7jMSECLfAN9zynm5QGo=
@@ -20,3 +22,5 @@ golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+periph.io/x/periph v3.6.2+incompatible h1:B9vqhYVuhKtr6bXua8N9GeBEvD7yanczCvE0wU2LEqw=
+periph.io/x/periph v3.6.2+incompatible/go.mod h1:EWr+FCIU2dBWz5/wSWeiIUJTriYv9v2j2ENBmgYyy7Y=
