@@ -14,10 +14,12 @@ type configMqtt struct {
 type configSensor struct {
 	pin       string
 	checkRate time.Duration
+	topic     string
 }
 
 type configButton struct {
-	pin int
+	pin   string
+	topic string
 }
 
 type config struct {
@@ -29,7 +31,8 @@ type config struct {
 
 func prepareConfig() *config {
 
-	gpioPin := env("GODOR_PIN", "1")
+	sensorPin := env("GODOR_SENSOR_PIN", "1")
+	buttonPin := env("GODOR_BUTTON_PIN", "2")
 
 	emulateString := env("EMULATE", "false")
 	emulate, _ := strconv.ParseBool(emulateString)
@@ -38,17 +41,18 @@ func prepareConfig() *config {
 		emulate: emulate,
 		mqtt: &configMqtt{
 			server: env("MQTT_SERVER", "tcp://192.168.1.194:1883"),
-			topic:  env("MQTT_TOPIC", "godor/door1"),
 		},
 
 		sensor: &configSensor{
-			pin:       gpioPin,
+			pin:       sensorPin,
 			checkRate: time.Second,
+			topic:     env("SENSOR_MQTT_TOPIC", "godor/door1/state"),
 		},
 
 		// not used yet
 		button: &configButton{
-			pin: 1,
+			pin:   buttonPin,
+			topic: env("BUTTON_MQTT_TOPIC", "godor/door1/trigger"),
 		},
 	}
 }
