@@ -112,7 +112,7 @@ func getPin(pin string) gpio.PinIO {
 	thePin := gpioreg.ByName(pin)
 
 	if err := thePin.In(gpio.PullUp, gpio.FallingEdge); err != nil {
-		log.Printf("unable to open pin %d: %v", pin, err)
+		log.Printf("unable to open pin %s: %v", pin, err)
 		os.Exit(1)
 	}
 
