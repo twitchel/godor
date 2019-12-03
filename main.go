@@ -29,6 +29,10 @@ func main() {
 		panic(err)
 	}
 
+	monitorSensor(c, client)
+}
+
+func monitorSensor(c *config, client MQTT.Client) {
 	pings := make(chan ping)
 
 	go func(c *config, p chan ping) {
@@ -38,8 +42,7 @@ func main() {
 		var pin gpio.PinIO
 		if !c.emulate {
 			host.Init()
-			pin = getPin(c.sensor.pin)
-			//pin.WaitForEdge(-1)
+			pin = getSensorPin(c.sensor.pin)
 		}
 
 		for _ = range ticker.C {
@@ -108,7 +111,7 @@ func emulatePing() ping {
 	}
 }
 
-func getPin(pin string) gpio.PinIO {
+func getSensorPin(pin string) gpio.PinIO {
 	thePin := gpioreg.ByName(pin)
 
 	if err := thePin.In(gpio.PullUp, gpio.FallingEdge); err != nil {
