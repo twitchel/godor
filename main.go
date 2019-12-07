@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/signal"
 	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
@@ -20,6 +21,9 @@ type ping struct {
 }
 
 func main() {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Kill)
+
 	c := prepareConfig()
 	log.Printf("configuration: %+v", c)
 
@@ -29,31 +33,42 @@ func main() {
 		panic(err)
 	}
 
-	monitorSensor(c, client)
+	go monitorButton(c.button, client)
+	go monitorSensor(c.sensor, client, c.emulate)
+
+	<-sigChan
 }
 
-func monitorSensor(c *config, client MQTT.Client) {
+func monitorButton(config *configButton, client MQTT.Client) {
+	if token := client.Subscribe(config.topic, byte(0), func (client MQTT.Client, message MQTT.Message) {
+		buttonHandler(config.pin, config.pressDuration)
+	}); token.Wait() && token.Error() != nil {
+		panic(token.Error())
+	}
+}
+
+func monitorSensor(c *configSensor, client MQTT.Client, emulate bool) {
 	pings := make(chan ping)
 
-	go func(c *config, p chan ping) {
+	go func(c *configSensor, p chan ping, emulate bool) {
 		// every 100 ms check if the pin is high or low and report this to then pings channel
-		ticker := time.NewTicker(c.sensor.checkRate)
+		ticker := time.NewTicker(c.checkRate)
 
 		var pin gpio.PinIO
-		if !c.emulate {
+		if !emulate {
 			host.Init()
-			pin = getSensorPin(c.sensor.pin)
+			pin = getSensorPin(c.pin)
 		}
 
 		for _ = range ticker.C {
-			if c.emulate {
+			if emulate {
 				p <- emulatePing()
 			} else {
 				p <- gpioPing(pin)
 
 			}
 		}
-	}(c, pings)
+	}(c, pings, emulate)
 
 	recheck := false
 	recheckValue := true
@@ -66,7 +81,7 @@ func monitorSensor(c *config, client MQTT.Client) {
 			if p.isOpen == recheckValue {
 
 				payload := fmt.Sprintf("{\"isOpen\":%v}", p.isOpen)
-				go client.Publish(c.sensor.topic, byte(0), false, payload)
+				go client.Publish(c.topic, byte(0), false, payload)
 
 				log.Printf(payload)
 			}
@@ -78,7 +93,7 @@ func monitorSensor(c *config, client MQTT.Client) {
 	}
 }
 
-func buttonHandler(buttonPin string) {
+func buttonHandler(buttonPin string, duration time.Duration) {
 	log.Printf("activating garage door")
 	pin := getButtonPin(buttonPin)
 	err := pin.Out(gpio.High)
@@ -86,7 +101,7 @@ func buttonHandler(buttonPin string) {
 		log.Printf("unable to push to pin %s: %v", buttonPin, err)
 		os.Exit(1)
 	}
-	time.Sleep(1000 * time.Millisecond)
+	time.Sleep(duration)
 	pin.Out(gpio.Low)
 }
 
@@ -143,15 +158,6 @@ func connectMqtt(config *config) (MQTT.Client, error) {
 	connOpts := MQTT.NewClientOptions().AddBroker(server).SetCleanSession(true)
 	tlsConfig := &tls.Config{InsecureSkipVerify: true, ClientAuth: tls.NoClientCert}
 	connOpts.SetTLSConfig(tlsConfig)
-	connOpts.OnConnect = func(client MQTT.Client) {
-		if token := client.Subscribe(config.button.topic, byte(0), func (client MQTT.Client, message MQTT.Message) {
-			go func () {
-				buttonHandler(config.button.pin)
-			}()
-		}); token.Wait() && token.Error() != nil {
-			panic(token.Error())
-		}
-	}
 
 	client := MQTT.NewClient(connOpts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
