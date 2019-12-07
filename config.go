@@ -20,6 +20,7 @@ type configSensor struct {
 type configButton struct {
 	pin   string
 	topic string
+	pressDuration time.Duration
 }
 
 type config struct {
@@ -53,6 +54,7 @@ func prepareConfig() *config {
 		button: &configButton{
 			pin:   buttonPin,
 			topic: env("BUTTON_MQTT_TOPIC", "godor/door1/trigger"),
+			pressDuration: 1000 * time.Millisecond,
 		},
 	}
 }
